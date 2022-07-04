@@ -1,5 +1,9 @@
 
 
+// start with an array of arrays
+// multiply will return a new array of arrays
+
+
 /*
 @done:
  1. let a = new R_MATIRX(obj)
@@ -29,88 +33,53 @@ function DEC2NONZEROBASE(n,b) {
  return arr;
 }
 
-function R_MATRIX(obj) {
-  
-  this.m = (obj.m || null);
-  this.n = (obj.n || null);
-  this.a = (obj.a || null);
-  
-  // FOR USE IN SELF INVOKING METHODS
-  let m = this.m;
-  let n = this.n;
-  let a = this.a;
-  
-  if (!obj.arr) {
-  
-  // POPULATE THE ARRAY
-  this.arr = (function() {  
-    let arr = [];
-    for (let y = 0; y < m; y++) {
-      arr.push(new Array());
-      for (let x = 0; x < n; x++) {
-        let num = y*n + x + 1;
-        if (a === null) {
-          arr[y].push(DEC2EXCEL(num));
-        } else {
-          arr[y].push(a + '<sub>' + (y+1) + (x+1) + '</sub>' );
-        }
-      }
-    }
-    return arr;
-  })();
-  
-  } else {
-    //console.log('this');
-    this.arr = obj.arr.slice(0);
-    this.m = this.arr.length;
-    this.n = this.arr[0].length;
-    m = this.m;
-    n = this.n;
-  }
-  arr = this.arr.slice(0);
-  
-  // MAKE THE TABLE
-  this.table = (function() {
-    
-    let table = document.createElement('table');
-    
-    table.style.borderCollapse = 'collapse';
-    table.style.fontFamily = 'monospace';
-    table.style.fontSize = '1.3em';
-
-    let padding = '0.25vh 0.75vh'; // can change
-    let border = '1px solid #f6f6f6';
-    let textAlign = 'center';
-    
-    for (let y = 0; y < arr.length; y++) {
-      let tr = document.createElement('tr');
-      table.appendChild(tr);
-
-      for (let x = 0; x < arr[y].length; x++) {
-        let td = document.createElement('td');
-        td.innerHTML = arr[y][x];
-        td.style.padding = padding;
-        td.style.border = border;
-        if (x === 0) {
-         td.style.borderLeft = '2px solid #777';
-        }
-        if (x === (arr[y].length-1)) {
-         td.style.borderRight = '2px solid #777';
-        }
-        td.style.textAlign = textAlign;
-        tr.appendChild(td);
-      }
-    }
-    
-   return table;
-  })();
 
 
-}
 
 R_MATRIX.prototype.getArr = function() {
  return this.arr.slice(0);
-} 
+};
+
+// returns an array
+R_MATRIX.prototype.return_row_as_arr = function(n) {
+ return this.arr.slice(n,n+1)[0];
+};
+// returns an array
+R_MATRIX.prototype.return_col_as_arr = function(m) {
+ let arr = [];
+ for (let y = 0; y < this.n_rows; y++) {
+   arr.push(this.arr[y][m]);
+ }
+ return arr;
+};
+
+// 
+function return_dot_product_as_number(arr_y, arr_x) {
+
+  // the must have the same length
+  let n = arr_x.length;
+  if (n !== arr_y.length) {
+    console.log('you cant dot product 2 vectors if they dont have the same length');
+    return;
+  }
+  
+  let str = "<p>";
+  
+  for (let i = 0; i < n; i++) {
+    str += arr_y[i] + " &middot; " + arr_x[i];
+    
+    if (i !== (n-1)) {
+      str += " + ";
+    }
+    
+  }
+  
+  str += "</p>"
+  
+  return str;
+};
+
+// return_dot_product_as_number(a.return_row_as_arr(1), a.return_col_as_arr(1));
 
 /*
 obj = {
@@ -195,86 +164,7 @@ R_MATRIX.prototype.getDet = function() {
 }  
 
 
-R_MATRIX.prototype.getExpandedDet = function(obj) {
-  
-  
-  if (this.m !== this.n) {
-    let div = document.createElement('div');
-    div.innerHTML = 'it has to be a square';
-    return div;
-  }
 
-  let div = document.createElement('div');
-  div.style.backgroundColor = '#fc08';
-  div.style.fontFamily = 'calibri';
-    
-  if (this.m === 1 && this.n == 1) {
-    div.innerHTML = this.arr[0][0];
-    return div;
-  }
-
- 
-  if (this.m === 2 && this.n === 2) {
-    div.appendChild(this.getDet());
-    let span = document.createElement('span');
-    span.innerHTML = '= ' + this.arr[0][0] + '&#183;' + this.arr[1][1] + ' - ' + this.arr[1][0] + '&#183;' + this.arr[0][1];
-    span.style.fontFamily = this.table.style.fontFamily;
-    span.style.fontSize = this.table.style.fontSize;
-    div.appendChild(span);
-    return div;
-  }
-  
-  if (obj) {
-
-    if (obj.col) {
-      console.log('column');
-      div.appendChild(this.getMatrix({'highlight':{'row':null,'col':obj.col,'cell':null,'color':'#fc08'}}));
-      for (let y = 0; y < this.m; y++) {
-        let span = document.createElement('span');
-        span.style.fontFamily = this.table.style.fontFamily;
-        span.style.fontSize = this.table.style.fontSize;
-        if (y !== 0) {span.innerHTML += getSign(y+obj.col-1)} else {span.innerHTML = '='};
-        span.innerHTML += ' ' + this.arr[y][obj.col-1];
-        div.appendChild(span);
-        div.appendChild(this.getCofactor(y+1, obj.col));
-      }
-      return div;
-    }
-
-    if (obj.row) {
-      console.log('row');
-      div.appendChild(this.getMatrix({'highlight':{'row':obj.row,'col':null,'cell':null,'color':'#fc08'}}));
-      for (let x = 0; x < this.n; x++) {
-        let span = document.createElement('span');
-        span.style.fontFamily = this.table.style.fontFamily;
-        span.style.fontSize = this.table.style.fontSize;
-        if (x !== 0) {span.innerHTML = getSign(x+obj.row-1)} else {span.innerHTML = '='};
-        span.innerHTML += ' ' + this.arr[obj.row-1][x];
-        div.appendChild(span);
-        div.appendChild(this.getCofactor(obj.row, x+1));
-      }
-      return div;
-    }
- } else {
-   
-    console.log('default');
-    div.appendChild(this.getMatrix({'highlight':{'row':1,'col':null,'cell':null,'color':'#fc08'}}));
-    for (let x = 0; x < this.n; x++) {
-        let span = document.createElement('span');
-        span.style.fontFamily = this.table.style.fontFamily;
-        span.style.fontSize = this.table.style.fontSize;
-        if (x !== 0) {span.innerHTML = getSign(x)} else {span.innerHTML = '='};
-        span.innerHTML += ' ' + this.arr[0][x];
-        div.appendChild(span);
-      div.appendChild(this.getCofactor(1, x+1));
-    }
-    
-
-    
-    return div;
-  }
- 
-}
 
 function getSign(n) {
   if (n === 0) {return '';}
@@ -336,7 +226,8 @@ function getContainer(table, matrixBorder = 1) {
  let div = document.createElement('div');
  div.style.display = 'inline-block';
  div.style.verticalAlign = 'middle';
- div.style.margin = '1vh';
+ div.style.margin = '5px';
+ div.style.padding = '0';
   
  let t0 = document.createElement('table');
  t0.style.borderCollapse = 'collapse';
