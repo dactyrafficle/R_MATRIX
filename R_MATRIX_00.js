@@ -13,27 +13,64 @@ function R_MATRIX(obj) {
   /*
   
   obj = {
-    'arr':
+    'n_rows':m,
+    'n_cols':n,
+    'generated_elements':null, // generated elements
+    'arr':null // hardcoded elements
   }
   
   */
-
+  
+  // IF WE HARDCODE ELEMENTS, THEN THOSE ELEMENTS TAKE PRECEDENCE
   if (obj.hasOwnProperty('arr')) {
     this.arr = obj.arr;
   }
-
-  // i want to replace m with n_rows, and n with n_cols
   
-  this.m = (obj.m || null);
-  this.n_rows = (obj.m || null);
+  // IF NO HARDCODED ELEMENTS
+  
+  // THE NUMBER OF ROWS
+  
+  this.n_rows = 0;
+  this.m = 0;
+  
   if (obj.hasOwnProperty('n_rows')) {
     this.n_rows = obj.n_rows;
+    this.m = obj.n_rows
+  }
+  if (obj.hasOwnProperty('m')) {
+    this.n_rows = obj.m;
+    this.m = obj.m
+  }
+
+ // THE NUMBER OF COLUMNS
+  
+  this.n_cols = 0;
+  this.n = 0;
+  
+  if (obj.hasOwnProperty('n_cols')) {
+    this.n_cols = obj.n_cols;
+    this.n = obj.n_cols;
+  }
+  if (obj.hasOwnProperty('m')) {
+    this.n_cols = obj.n;
+    this.n = obj.n;
+  }
+
+ // THE GENERATED ELEMENTS
+  
+  this.generated_elements = null;
+  this.a = null;
+  
+  if (obj.hasOwnProperty('generated_elements')) {
+    this.generated_elements = obj.generated_elements;
+    this.a = obj.generated_elements;
+  }
+  if (obj.hasOwnProperty('a')) {
+    this.generated_elements = obj.a;
+    this.a = obj.a;
   }
   
-  this.n = (obj.n || null);
-  this.n_cols = (obj.n || null);
-  
-  this.a = (obj.a || null);
+  // continued...
   
   // FOR USE IN SELF INVOKING METHODS
   let m = this.m; // number of rows
