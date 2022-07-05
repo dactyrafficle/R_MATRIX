@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title> &middot; &middot; &middot; </title>
+
+  <link rel="icon" href="./includes/a.png">
+  <link rel="stylesheet" type="text/css" href="./includes/a.css">
+
+  <script src='R_MATRIX_00.js'></script>
+  <script src='r_matrix.js'></script>
+  <script src='./get_expanded_det.js'></script>
+  <link rel='stylesheet' href='coding.css'>
+</head>
+<body>
+
+ <div id='ax'></div>
+
+  <div>
+    
+<!-- opening L0 -->
+<div class='section border margin padding'>
+  <h4> national income models </h4>
+
+<ul>
+  <li><p> y = c + i + g </p>
+  <li><p> c = a + by </p>
+</ul>
+<p> in this model, there is no interest rate. so i is constant. there is no import export either </p>
+
+<pre class='code border padding'>let g = new R_MATRIX({'arr':[
+ ["y", "-c"],
+ ["-by", "c"]
+]});
+
+g.getMatrix();</pre>
+
+<div id='nation_income_model_1'></div>
+
+<script>
+window.addEventListener('load', function() {
+  let g = new R_MATRIX({'arr':[
+    ["y", "-c"],
+    ["-by", "c"]
+  ]});
+  nation_income_model_1.appendChild(g.getMatrix());
+}); // closing window.onload
+
+</script>
+
+</div> <!-- closing L0 -->
+
+<!-- opening L0 -->
+<div class='section border margin padding'>
+
+<h4> national income model 2 </h4>
+  
+<ul>
+  <li><p> Y = C + i + g </p>
+  <li><p> C = c<sub>0</sub> + c(Y-T) </p>
+  <li><p> T = tY </p>
+</ul>
+
+<p> in this case, we havent [make it parametric] so we have 3 endo variables </p>
+
+<div id='nation_income_model_2'></div>
+
+<p> det(A) = -1 + c - ct </p>
+
+<script>
+window.addEventListener('load', function() {
+  
+  let Ax = new R_MATRIX({'arr':[
+    ["Y", "C", "0"],
+    ["-cY", "-C", "cT"],
+    ["-tY","0","T"]
+  ]});
+  let A = new R_MATRIX({'arr':[
+    ["1", "1", "0"],
+    ["-c", "-1", "c"],
+    ["-t","0","1"]
+  ]});
+  let x = new R_MATRIX({'arr':[
+    ["Y"],
+    ["C"],
+    ["T"]
+  ]});
+  let d = new R_MATRIX({'arr':[
+    ["i+g"],
+    ["c<sub>0</sub>"],
+    ["0"]
+  ]});
+  nation_income_model_2.innerHTML += "<pre class='blue'>Ax.getMatrix()</pre>";
+  nation_income_model_2.innerHTML += "<pre class='blue'>d.getMatrix()</pre>";
+  nation_income_model_2.appendChild(Ax.getMatrix());
+  nation_income_model_2.appendChild(d.getMatrix());
+
+  nation_income_model_2.appendChild(A.getMatrix());
+  nation_income_model_2.appendChild(x.getMatrix());
+  nation_income_model_2.appendChild(d.getMatrix());
+  
+  nation_income_model_2.appendChild(A.getExpandedDet({'row':2,'col':1}));
+  
+});
+
+
+</script>
+
+
+
+</div> <!-- closing L0 -->  </div>
+
+</body>
+
+<script>
+
+let ax = document.getElementById('ax');
+let a = new R_MATRIX({'m':4,'n':4});
+let b = new R_MATRIX({'m':2,'n':2,'a':'a'});
+
+ax.innerHTML += "<pre class='blue'>let a = new R_MATRIX({'m':4,'n':4});</pre>";
+ax.innerHTML += "<pre class='blue'>let b = new R_MATRIX({'m':2,'n':2,'a':'a'});</pre>";
+ax.innerHTML += "<pre class='blue'>a.getMatrix()</pre>";
+ax.innerHTML += "<pre class='blue'>b.getMatrix()</pre>";
+ax.appendChild(a.getMatrix());
+ax.appendChild(b.getMatrix());
+
+ax.innerHTML += "<pre class='blue'>a.getMatrix({'highlight':{'row':1,'col':2,'cell':[3,4],'color':'#fc08'}})</pre>";
+ax.appendChild(a.getMatrix({'highlight':{'row':1,'col':2,'cell':[3,4],'color':'#fc08'}}));
+
+ax.innerHTML += "<h4>b.getDet()</h4>";
+ax.innerHTML += "<pre class='blue'>a.getDet()</pre>";
+ax.innerHTML += "<pre class='blue'>b.getDet()</pre>";
+ax.appendChild(a.getDet());
+ax.appendChild(b.getDet());
+
+ax.innerHTML += "<h4>a.getCofactor(i,j)</h4>";
+ax.innerHTML += "<pre class='blue'>a.getCofactor(2,1)</pre>";
+ax.appendChild(a.getCofactor(2,1));
+
+ax.innerHTML += "<h4>a.getExpandedDet(obj)</h4>";
+
+ax.innerHTML += "<pre class='blue'>a.getExpandedDet({'row':2})</pre>";
+ax.appendChild(a.getExpandedDet({'row':2}));
+
+ax.innerHTML += "<pre class='blue'>a.getExpandedDet({'col':3})</pre>";
+ax.appendChild(a.getExpandedDet({'col':3}));
+
+ax.innerHTML += "<pre class='blue'>a.getExpandedDet() <span class='green'>// default </span></pre>";
+ax.appendChild(a.getExpandedDet());
+
+ax.innerHTML += "<pre class='blue'>b.getExpandedDet()</pre>";
+ax.appendChild(b.getExpandedDet());
+
+ax.innerHTML += "<pre class='blue'>b.getExpandedDet()</pre>";
+ax.appendChild(b.getExpandedDet());
+
+ax.innerHTML += "<pre class='blue'>return_dot_product_as_number(a.return_row_as_arr(1), a.return_col_as_arr(1));</pre>";
+let bnbn = return_dot_product_as_number(a.return_row_as_arr(1), a.return_col_as_arr(1));
+let p = document.createElement('p');
+p.innerHTML = bnbn;
+ax.appendChild(p);
+
+
+let c = new R_MATRIX({'arr':[[1],[2],[3],[4]]});
+ax.innerHTML += "<pre class='blue'>c.getMatrix()</pre>";
+ax.appendChild(c.getMatrix());
+
+
+ax.innerHTML += "<pre class='blue'>a.showMultiply(b)</pre>";
+
+
+
+
+</script>
+</html>

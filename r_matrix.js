@@ -157,7 +157,8 @@ R_MATRIX.prototype.getMatrix = function(obj) {
  
  // CONTAINER FOR THE TABLE
  return getContainer(table);
-}
+};
+
 R_MATRIX.prototype.getDet = function() {
  let table = this.table.cloneNode(true);
  return getContainer(table, 0);;
