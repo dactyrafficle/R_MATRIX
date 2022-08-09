@@ -1,4 +1,138 @@
-/* LAST UPDATED : 2022-08-09-0451 EDT */
+/* LAST UPDATED : 2022-08-09-1125 EDT */
+
+
+// obj = {'border_type':border_type}
+R_MATRIX.prototype.getMatrix = function(obj) {
+  
+  // MAKE THE TABLE
+  let table = document.createElement('table');
+  table.style.borderCollapse = 'collapse';
+  table.style.border = '0px solid transparent';
+  table.style.margin = 0;
+  table.style.padding = 0;
+  
+  table.style.fontFamily = 'monospace';
+
+  
+  // EACH CELL. DEFAULT SPECS
+  let border = '1px solid #f6f6f6';
+  let padding = '0.5em 0.75em'; // can change
+  let textAlign = "right";
+
+
+  // FOR EACH ROW
+  for (let y = 0; y < this.n_rows; y++) {
+
+    let tr = document.createElement('tr');
+    table.appendChild(tr);
+
+      // FOR EACH COLUMN
+      for (let x = 0; x < this.n_cols; x++) {
+        
+        let td = document.createElement('td');
+        td.style.padding = padding;
+        td.style.border = border;
+        td.style.textAlign = textAlign;
+        tr.appendChild(td);
+        
+        if (this.arr[y][x].constructor.name === "R_MATRIX") {
+          td.appendChild(this.arr[y][x].getMatrix(obj));
+        }
+        if (this.arr[y][x].constructor.name !== "R_MATRIX") {
+          td.innerHTML = this.arr[y][x];
+        }  
+    
+    } // closing x-loop
+      
+  } // closing y-loop
+  
+  return this.addBorders({
+    'border_type':obj.border_type,
+    'contents':table
+  });
+
+};
+
+
+
+// obj = {'border_type':border_type,'contents':contents}
+R_MATRIX.prototype.addBorders = function(obj) {
+
+  // THIS FUNCTION RETURNS A TABLE WITH 3 ROWS, WITH 5-3-5 CELLS RESPECTIVELY
+  // THE TOP AND BOTTOM ROWS HAVE 5 CELLS BECAUSE CELLS 1 AND 3 ARE THE OVERHANG FOR THE BORDERED MATRIX
+  // CELL 1-1 HOLDS THE CONTENTS OF THE MATRIX
+  
+  let border_thickness = 2; // in px
+  let border_overhang = 5; // in px
+
+  // THIS PART, THE CELLS OBJECT, IS JUST FOR EASE OF REFERENCE
+  let cells = [];
+  for (let y = 0; y < 3; y++) {
+    cells.push([]);
+    let n_cols = (y == 1) ? (3) : (5);
+    for (let x = 0; x < n_cols; x++) {
+      let td = document.createElement('td');
+      td.style.border = 'none';
+      td.style.margin = 0;
+      td.style.padding = 0;
+      cells[y].push(td);
+    }
+  }
+  cells[1][1].colSpan = 3;
+  
+  // BORDER THICKNESS
+  cells[0][0].style.height = border_thickness + 'px';
+  cells[1][0].style.width = border_thickness + 'px';
+  cells[1][2].style.width = border_thickness + 'px';
+  cells[2][0].style.height = border_thickness + 'px';
+  
+  // THE OVERHANG
+  cells[0][1].style.width = border_overhang + 'px';
+  cells[0][3].style.width = border_overhang + 'px';
+
+  // APPLYING COLOR THE THE BORDERS
+  cells[0][0].style.backgroundColor = '#999';
+  cells[0][4].style.backgroundColor = '#999';
+  
+  if (obj.border_type === 'B') {
+    cells[0][1].style.backgroundColor = '#999';
+    cells[0][3].style.backgroundColor = '#999';
+    cells[2][1].style.backgroundColor = '#999';
+    cells[2][3].style.backgroundColor = '#999';
+  }
+  
+  cells[1][0].style.backgroundColor = '#999';
+  cells[1][2].style.backgroundColor = '#999';
+  cells[2][0].style.backgroundColor = '#999';
+  cells[2][4].style.backgroundColor = '#999';
+
+  // MAKE THE ACTUAL TABLE
+  let table = document.createElement('table');
+  table.style.borderCollapse = 'collapse';  // most important, this is
+  table.style.border = 'none';
+  table.style.margin = 0;
+  table.style.padding = 0;
+
+  for (let y = 0; y < cells.length; y++) {
+    let tr = document.createElement('tr');
+    tr.style.border = 'none';
+    tr.style.margin = 0;
+    tr.style.padding = 0;
+    table.appendChild(tr);
+    
+    for (let x = 0; x < cells[y].length; x++) {
+
+      // APPLY THE CONTENTS
+      if (x === 1 && y === 1) {
+        cells[y][x].appendChild(obj.contents);
+      }
+      tr.appendChild(cells[y][x]);
+    }
+  }
+  
+  return table;
+
+};
 
 // these are functions for numerical evaluation
 let rafficot = {};
@@ -44,6 +178,30 @@ rafficot.get_sub_matrix = function(a, y, x) {
   
   return m;
 };
+
+
+R_MATRIX.prototype.getBMatrix = function() {
+  
+  let m = this.getMatrix({'border_type':'B'}); 
+  
+  let container = document.createElement('div');
+  container.style.display = 'inline-block';
+  container.appendChild(m);
+  
+  return container;
+};
+
+
+R_MATRIX.prototype.getVMatrix = function() {
+  
+  let m = this.getMatrix({'border_type':'V'});
+  
+  let container = document.createElement('div');
+  container.style.display = 'inline-block';
+  container.appendChild(m);
+  
+  return container;
+};
 rafficot.get_transpose = function(matrix) {
 
   let n_rows = matrix.length;
@@ -86,33 +244,39 @@ rafficot.get_sub_matrix = function(a, y, x) {
     return det;
   };
 
-rafficot.get_product = function(arr1, arr2) {
+rafficot.get_product = function(matrix_a, matrix_b) {
 
-  // the n_rows from arr1
-  // the n_cols from arr2
-  // cols from arr1 must match rows from arr2
-
-  let n_rows = arr1.length;
-  let n_cols = arr2[0].length;
-
-  let n = arr1[0].length;
-
-  let output = this.create_matrix(n_rows, n_cols);
+  // i maybe should check that the number of columns from matrix_a matches the number of rows from matrix_b ***
   
-  for (let i = 0; i < n_rows; i++) {
-    
-    for (j = 0; j < n_cols; j++) {
-      
-      let a = 0;
-      
-      // loop over the columns of arr1 from row i
-      // loop over the rows of arr2 at column j
-      for (let k = 0; k < n; k++) {
-      
-        a += arr1[i][k] * arr2[k][j];
+  // the number of rows comes from matrix_a
+  let n_rows = matrix_a.length;
+  
+  // the number of columns comes from matrix_b
+  let n_cols = matrix_b[0].length;
+  
+  // the output matrix
+  let output_matrix = this.create_matrix(n_rows, n_cols);
+  
+  let n = matrix_a[0].length; // ***
 
+
+  // loop over the rows of matrix_a
+  for (let y = 0; y < n_rows; y++) {
+    
+    for (x = 0; x < n_cols; x++) {
+      
+      
+      output_matrix[y][x] = 0;
+      // let a = 0;
+      
+      // element (y,x) of the output_matrix is the dot product of row-y of matrix_a, and column-x of matrix_b
+      // thats why we needed this ***
+      for (let z = 0; z < n; z++) {
+      
+        // a += matrix_a[y][k] * matrix_b[k][j];
+        output_matrix[y][x] += matrix_a[y][z] * matrix_b[z][x];
       }
-      output[i][j] = a;
+      // output_matrix[y][x] = a;
       
     }
     
@@ -120,7 +284,7 @@ rafficot.get_product = function(arr1, arr2) {
   
   }
 
-  return output;
+  return output_matrix;
 
 };
 
@@ -129,13 +293,13 @@ rafficot.get_cofactor_matrix = function(matrix) {
 
   let output_matrix = [];
   
-  for (let y = 0; y < a.length; y++) {
+  for (let y = 0; y < matrix.length; y++) {
     
     output_matrix.push([]);
-    for (let x = 0; x < a[y].length; x++) {
+    for (let x = 0; x < matrix[y].length; x++) {
     
-      let m = this.get_sub_matrix(a, y, x);
-      let det = this.get_determinant(m);
+      let sub_matrix = this.get_sub_matrix(matrix, y, x);
+      let det = this.get_determinant(sub_matrix);
       output_matrix[y].push((-1)**((y+1)+(x+1)) * det);
       
     }
@@ -157,10 +321,10 @@ rafficot.get_cofactor_matrix = function(matrix) {
 
   let adjugate_matrix = this.get_adjugate(matrix);
 
-  let determinant = rafficot.get_determinant(matrix);
+  let determinant = this.get_determinant(matrix);
 
   let n = matrix.length;  
-  let matrix_inverse = rafficot.create_matrix(n, n);
+  let matrix_inverse = this.create_matrix(n, n);
   
   for (let y = 0; y < n; y++) {
     for (let x = 0; x < n; x++) {
@@ -347,214 +511,6 @@ function DEC2NONZEROBASE(n,b) {
  return arr;
 };
 
-
-// all this does is return the base table
-// there are no borders
-// there is no special formatting
-// its output is not stored as part of the object
-
-R_MATRIX.prototype.getBMatrix = function() {
-
-/*
-  let contents = this.getBaseTableRecursive();
-  let bordered_contents = this.addBorders({
-    'contents':contents
-  });
-*/
- 
-  return this.getMatrix({'border_type':'B'});
-  
-};
-
-R_MATRIX.prototype.getVMatrix = function() {
-  return this.getMatrix({'border_type':'V'});
-};
-
-// obj = {'border_type':border_type,'contents':contents}
-R_MATRIX.prototype.addBorders = function(obj) {
-
-  // THIS FUNCTION RETURNS A TABLE WITH 3 ROWS, WITH 5-3-5 CELLS RESPECTIVELY
-  // THE TOP AND BOTTOM ROWS HAVE 5 CELLS BECAUSE CELLS 1 AND 3 ARE THE OVERHANG FOR THE BORDERED MATRIX
-  // CELL 1-1 HOLDS THE CONTENTS OF THE MATRIX
-  
-  let border_thickness = 2; // in px
-  let border_overhang = 5; // in px
-
-  // THIS PART, THE CELLS OBJECT, IS JUST FOR EASE OF REFERENCE
-  let cells = [];
-  for (let y = 0; y < 3; y++) {
-    cells.push([]);
-    let n_cols = (y == 1) ? (3) : (5);
-    for (let x = 0; x < n_cols; x++) {
-      let td = document.createElement('td');
-      td.style.border = 'none';
-      td.style.margin = 0;
-      td.style.padding = 0;
-      cells[y].push(td);
-    }
-  }
-  cells[1][1].colSpan = 3;
-  
-  // BORDER THICKNESS
-  cells[0][0].style.height = border_thickness + 'px';
-  cells[1][0].style.width = border_thickness + 'px';
-  cells[1][2].style.width = border_thickness + 'px';
-  cells[2][0].style.height = border_thickness + 'px';
-  
-  // THE OVERHANG
-  cells[0][1].style.width = border_overhang + 'px';
-  cells[0][3].style.width = border_overhang + 'px';
-
-  // APPLYING COLOR THE THE BORDERS
-  cells[0][0].style.backgroundColor = '#999';
-  cells[0][4].style.backgroundColor = '#999';
-  
-  if (obj.border_type === 'B') {
-    cells[0][1].style.backgroundColor = '#999';
-    cells[0][3].style.backgroundColor = '#999';
-    cells[2][1].style.backgroundColor = '#999';
-    cells[2][3].style.backgroundColor = '#999';
-  }
-  
-  cells[1][0].style.backgroundColor = '#999';
-  cells[1][2].style.backgroundColor = '#999';
-  cells[2][0].style.backgroundColor = '#999';
-  cells[2][4].style.backgroundColor = '#999';
-
-  // MAKE THE ACTUAL TABLE
-  let table = document.createElement('table');
-  table.style.borderCollapse = 'collapse';  // most important, this is
-  table.style.border = 'none';
-  table.style.margin = 0;
-  table.style.padding = 0;
-
-  for (let y = 0; y < cells.length; y++) {
-    let tr = document.createElement('tr');
-    tr.style.border = 'none';
-    tr.style.margin = 0;
-    tr.style.padding = 0;
-    table.appendChild(tr);
-    
-    for (let x = 0; x < cells[y].length; x++) {
-
-      // APPLY THE CONTENTS
-      if (x === 1 && y === 1) {
-        cells[y][x].appendChild(obj.contents);
-      }
-      tr.appendChild(cells[y][x]);
-    }
-  }
-  
-  return table;
-
-};
-
-
-// obj = {'border_type':border_type}
-R_MATRIX.prototype.getMatrix = function(obj) {
-  
-  // MAKE THE TABLE
-  let table = document.createElement('table');
-  table.style.borderCollapse = 'collapse';
-  table.style.border = '0px solid transparent';
-  table.style.margin = 0;
-  table.style.padding = 0;
-  
-  table.style.fontFamily = 'monospace';
-
-  
-  // EACH CELL. DEFAULT SPECS
-  let border = '1px solid #f6f6f6';
-  let padding = '0.5em 0.75em'; // can change
-  let textAlign = "right";
-
-
-  // FOR EACH ROW
-  for (let y = 0; y < this.n_rows; y++) {
-
-    let tr = document.createElement('tr');
-    table.appendChild(tr);
-
-      // FOR EACH COLUMN
-      for (let x = 0; x < this.n_cols; x++) {
-        
-        let td = document.createElement('td');
-        td.style.padding = padding;
-        td.style.border = border;
-        td.style.textAlign = textAlign;
-        tr.appendChild(td);
-        
-        if (this.arr[y][x].constructor.name === "R_MATRIX") {
-          td.appendChild(this.arr[y][x].getMatrix(obj));
-        }
-        if (this.arr[y][x].constructor.name !== "R_MATRIX") {
-          td.innerHTML = this.arr[y][x];
-        }  
-    
-    } // closing x-loop
-      
-  } // closing y-loop
-  
-  return this.addBorders({
-    'border_type':obj.border_type,
-    'contents':table
-  });
-
-};
-
-/*
-
-// content of matrix
-R_MATRIX.prototype.getBaseTableRecursive = function() {
-  
-  // MAKE THE TABLE
-  let table = document.createElement('table');
-  table.style.borderCollapse = 'collapse';
-  table.style.border = '0px solid transparent';
-  table.style.margin = 0;
-  table.style.padding = 0;
-  
-  table.style.fontFamily = 'monospace';
-
-  
-  // EACH CELL. DEFAULT SPECS
-  let border = '1px solid #f6f6f6';
-  let padding = '0.5em 0.75em'; // can change
-  let textAlign = "right";
-
-
-  // FOR EACH ROW
-  for (let y = 0; y < this.n_rows; y++) {
-
-    let tr = document.createElement('tr');
-    table.appendChild(tr);
-
-      // FOR EACH COLUMN
-      for (let x = 0; x < this.n_cols; x++) {
-        
-        let td = document.createElement('td');
-        td.style.padding = padding;
-        td.style.border = border;
-        td.style.textAlign = textAlign;
-        tr.appendChild(td);
-        
-        if (this.arr[y][x].constructor.name === "R_MATRIX") {
-          td.appendChild(this.arr[y][x].getBaseTableRecursive());
-        }
-        if (this.arr[y][x].constructor.name !== "R_MATRIX") {
-          td.innerHTML = this.arr[y][x];
-        }  
-    
-    } // closing x-loop
-      
-  } // closing y-loop
-  
-  return table;
-
-};
-
-*/
-
 /*
 obj = {
  'highlight':{
@@ -603,7 +559,11 @@ R_MATRIX.prototype.getCofactorMatrix = function() {
 };
 
 R_MATRIX.prototype.getExpandedDet = function(obj) {
+
+  let container = document.createElement('div');
   
+
+
   if (this.m !== this.n) {
     let div = document.createElement('div');
     div.innerHTML = 'it has to be a square';
@@ -623,7 +583,7 @@ R_MATRIX.prototype.getExpandedDet = function(obj) {
   // IF ITS 2X2
   if (this.m === 2 && this.n === 2) {
     
-    div.appendChild(this.getDet());
+    div.appendChild(this.getVMatrix());
     
     let span = document.createElement('span');
     span.innerHTML = '= ' + this.arr[0][0] + '&#183;' + this.arr[1][1] + ' - ' + this.arr[1][0] + '&#183;' + this.arr[0][1];
@@ -634,17 +594,20 @@ R_MATRIX.prototype.getExpandedDet = function(obj) {
   }
   
   // ALL OTHER CASES
-  div.appendChild(this.getDet());
+  div.appendChild(this.getVMatrix());
   let span_equal = document.createElement('span');
   span_equal.innerHTML = "="
   span_equal.style.margin = "5px";
   div.appendChild(span_equal);
   
+  
+  let y = 0;
+  
   for (let x = 0; x < this.n; x++) {
 
     if (x !== 0) {
       let s2 = document.createElement('span');
-      s2.innerHTML = getSign(x);
+      s2.innerHTML = (-1)**((y+1)+(x+1)); // get sign
       s2.style.margin = "5px";
       div.appendChild(s2);
     };
@@ -659,12 +622,14 @@ R_MATRIX.prototype.getExpandedDet = function(obj) {
     s4.style.margin = "0";
     div.appendChild(s4);
     
-    div.appendChild(this.getCofactor(1, x+1).getDet());
+    div.appendChild(this.getCofactor(1, x+1).getVMatrix());
 
   }
   return div;
  
 };
+
+// egg
 
 /*
 obj = {
