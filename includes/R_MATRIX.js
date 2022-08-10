@@ -1,4 +1,182 @@
-/* LAST UPDATED : 2022-08-10-0437 EDT */
+/* LAST UPDATED : 2022-08-10-0507 EDT */
+
+// these are functions for numerical evaluation
+let rafficot = {};
+
+// methods with no dependencies will have filenames starting with 1000
+
+// those with dependencies will 2000+
+
+rafficot.create_matrix = function(n_rows, n_cols) {
+
+  let output_matrix = [];
+  
+  for (let y = 0; y < n_rows; y++) {
+  
+    output_matrix.push(new Array());
+    
+    for (let x = 0; x < n_cols; x++) {
+      output_matrix[y].push(0);
+    }
+  }
+  
+  return output_matrix;
+};
+
+
+
+rafficot.get_sub_matrix = function(a, y, x) {
+
+  // clone the matrix first
+  let m = [];
+  for (let i = 0; i < a.length; i++) {
+    m.push([]);
+    for (let j = 0; j < a[i].length; j++) {
+      m[i].push(a[i][j]);
+    }
+  }
+
+  m.splice(y, 1); // deletes the first row
+  
+  for (let i = 0; i < m.length; i++) {
+    m[i].splice(x, 1);
+  }
+  
+  return m;
+};
+rafficot.get_transpose = function(matrix) {
+
+  let n_rows = matrix.length;
+  let n_cols = matrix[0].length;
+  
+  let output_matrix = this.create_matrix(n_cols, n_rows);
+  
+  for (let y = 0; y < n_cols; y++) {
+    for (let x = 0; x < n_rows; x++) {
+    
+      output_matrix[y][x] = matrix[x][y];
+    
+    }
+  }
+
+  return output_matrix;
+
+};
+
+  rafficot.get_determinant = function(a) {
+
+    // exit condition 1 
+    if (a.length === 1) {
+      return a[0][0];
+    }
+  
+    // exit condition 2 
+    if (a.length === 2) {
+      return (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
+    }
+  
+    // expansion using row 1 
+    let y = 0;
+    let det = 0;
+    for (let x = 0; x < a.length; x++) {
+      let m = this.get_sub_matrix(a, y, x);  // another function I wrote, so possibly we can expand along any row-column combo 
+      det += (-1)**((y+1)+(x+1)) * a[0][x] * this.get_determinant(m); // is recursive 
+    }
+    
+    return det;
+  };
+
+rafficot.get_product = function(matrix_a, matrix_b) {
+
+  // i maybe should check that the number of columns from matrix_a matches the number of rows from matrix_b ***
+  
+  // the number of rows comes from matrix_a
+  let n_rows = matrix_a.length;
+  
+  // the number of columns comes from matrix_b
+  let n_cols = matrix_b[0].length;
+  
+  // the output matrix
+  let output_matrix = this.create_matrix(n_rows, n_cols);
+  
+  let n = matrix_a[0].length; // ***
+
+
+  // loop over the rows of matrix_a
+  for (let y = 0; y < n_rows; y++) {
+    
+    for (x = 0; x < n_cols; x++) {
+      
+      
+      output_matrix[y][x] = 0;
+      // let a = 0;
+      
+      // element (y,x) of the output_matrix is the dot product of row-y of matrix_a, and column-x of matrix_b
+      // thats why we needed this ***
+      for (let z = 0; z < n; z++) {
+      
+        // a += matrix_a[y][k] * matrix_b[k][j];
+        output_matrix[y][x] += matrix_a[y][z] * matrix_b[z][x];
+      }
+      // output_matrix[y][x] = a;
+      
+    }
+    
+    
+  
+  }
+
+  return output_matrix;
+
+};
+
+// RETURNS A MODIFIED COPY OF THE ORIGINAL
+rafficot.get_cofactor_matrix = function(matrix) {
+
+  let output_matrix = [];
+  
+  for (let y = 0; y < matrix.length; y++) {
+    
+    output_matrix.push([]);
+    for (let x = 0; x < matrix[y].length; x++) {
+    
+      let sub_matrix = this.get_sub_matrix(matrix, y, x);
+      let det = this.get_determinant(sub_matrix);
+      output_matrix[y].push((-1)**((y+1)+(x+1)) * det);
+      
+    }
+  }
+
+  return output_matrix;
+
+};
+rafficot.get_adjugate = function(matrix) {
+
+  let cofactor_matrix = this.get_cofactor_matrix(matrix);
+  
+  let adjugate_matrix = this.get_transpose(cofactor_matrix);
+  
+  return adjugate_matrix;
+
+};
+rafficot.get_inverse = function(matrix) {
+
+  let adjugate_matrix = this.get_adjugate(matrix);
+
+  let determinant = this.get_determinant(matrix);
+
+  let n = matrix.length;  
+  let matrix_inverse = this.create_matrix(n, n);
+  
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      matrix_inverse[y][x] = (1/determinant) * adjugate_matrix[y][x];
+    }
+  }
+  
+  return matrix_inverse;
+  
+};
 
 
 /*
@@ -168,51 +346,6 @@ R_MATRIX.prototype.addBorders = function(obj) {
 
 };
 
-// these are functions for numerical evaluation
-let rafficot = {};
-
-// methods with no dependencies will have filenames starting with 1000
-
-// those with dependencies will 2000+
-
-rafficot.create_matrix = function(n_rows, n_cols) {
-
-  let output_matrix = [];
-  
-  for (let y = 0; y < n_rows; y++) {
-  
-    output_matrix.push(new Array());
-    
-    for (let x = 0; x < n_cols; x++) {
-      output_matrix[y].push(0);
-    }
-  }
-  
-  return output_matrix;
-};
-
-
-
-rafficot.get_sub_matrix = function(a, y, x) {
-
-  // clone the matrix first
-  let m = [];
-  for (let i = 0; i < a.length; i++) {
-    m.push([]);
-    for (let j = 0; j < a[i].length; j++) {
-      m[i].push(a[i][j]);
-    }
-  }
-
-  m.splice(y, 1); // deletes the first row
-  
-  for (let i = 0; i < m.length; i++) {
-    m[i].splice(x, 1);
-  }
-  
-  return m;
-};
-
 
 R_MATRIX.prototype.getBMatrix = function(obj_) {
   
@@ -237,139 +370,6 @@ R_MATRIX.prototype.getVMatrix = function() {
   container.appendChild(m);
   
   return container;
-};
-rafficot.get_transpose = function(matrix) {
-
-  let n_rows = matrix.length;
-  let n_cols = matrix[0].length;
-  
-  let output_matrix = this.create_matrix(n_cols, n_rows);
-  
-  for (let y = 0; y < n_cols; y++) {
-    for (let x = 0; x < n_rows; x++) {
-    
-      output_matrix[y][x] = matrix[x][y];
-    
-    }
-  }
-
-  return output_matrix;
-
-};
-
-  rafficot.get_determinant = function(a) {
-
-    // exit condition 1 
-    if (a.length === 1) {
-      return a[0][0];
-    }
-  
-    // exit condition 2 
-    if (a.length === 2) {
-      return (a[0][0] * a[1][1] - a[1][0] * a[0][1]);
-    }
-  
-    // expansion using row 1 
-    let y = 0;
-    let det = 0;
-    for (let x = 0; x < a.length; x++) {
-      let m = this.get_sub_matrix(a, y, x);  // another function I wrote, so possibly we can expand along any row-column combo 
-      det += (-1)**((y+1)+(x+1)) * a[0][x] * this.get_determinant(m); // is recursive 
-    }
-    
-    return det;
-  };
-
-rafficot.get_product = function(matrix_a, matrix_b) {
-
-  // i maybe should check that the number of columns from matrix_a matches the number of rows from matrix_b ***
-  
-  // the number of rows comes from matrix_a
-  let n_rows = matrix_a.length;
-  
-  // the number of columns comes from matrix_b
-  let n_cols = matrix_b[0].length;
-  
-  // the output matrix
-  let output_matrix = this.create_matrix(n_rows, n_cols);
-  
-  let n = matrix_a[0].length; // ***
-
-
-  // loop over the rows of matrix_a
-  for (let y = 0; y < n_rows; y++) {
-    
-    for (x = 0; x < n_cols; x++) {
-      
-      
-      output_matrix[y][x] = 0;
-      // let a = 0;
-      
-      // element (y,x) of the output_matrix is the dot product of row-y of matrix_a, and column-x of matrix_b
-      // thats why we needed this ***
-      for (let z = 0; z < n; z++) {
-      
-        // a += matrix_a[y][k] * matrix_b[k][j];
-        output_matrix[y][x] += matrix_a[y][z] * matrix_b[z][x];
-      }
-      // output_matrix[y][x] = a;
-      
-    }
-    
-    
-  
-  }
-
-  return output_matrix;
-
-};
-
-// RETURNS A MODIFIED COPY OF THE ORIGINAL
-rafficot.get_cofactor_matrix = function(matrix) {
-
-  let output_matrix = [];
-  
-  for (let y = 0; y < matrix.length; y++) {
-    
-    output_matrix.push([]);
-    for (let x = 0; x < matrix[y].length; x++) {
-    
-      let sub_matrix = this.get_sub_matrix(matrix, y, x);
-      let det = this.get_determinant(sub_matrix);
-      output_matrix[y].push((-1)**((y+1)+(x+1)) * det);
-      
-    }
-  }
-
-  return output_matrix;
-
-};
-rafficot.get_adjugate = function(matrix) {
-
-  let cofactor_matrix = this.get_cofactor_matrix(matrix);
-  
-  let adjugate_matrix = this.get_transpose(cofactor_matrix);
-  
-  return adjugate_matrix;
-
-};
-rafficot.get_inverse = function(matrix) {
-
-  let adjugate_matrix = this.get_adjugate(matrix);
-
-  let determinant = this.get_determinant(matrix);
-
-  let n = matrix.length;  
-  let matrix_inverse = this.create_matrix(n, n);
-  
-  for (let y = 0; y < n; y++) {
-    for (let x = 0; x < n; x++) {
-      matrix_inverse[y][x] = (1/determinant) * adjugate_matrix[y][x];
-    }
-  }
-  
-  return matrix_inverse;
-  
 };
 
 // can define a default array, or element by element
