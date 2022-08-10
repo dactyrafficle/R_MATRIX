@@ -1,7 +1,14 @@
-/* LAST UPDATED : 2022-08-09-1125 EDT */
+/* LAST UPDATED : 2022-08-10-0437 EDT */
 
 
-// obj = {'border_type':border_type}
+/*
+
+obj = {
+  'border_type':border_type,
+  'decimal_places':null
+}
+
+*/
 R_MATRIX.prototype.getMatrix = function(obj) {
   
   // MAKE THE TABLE
@@ -39,7 +46,34 @@ R_MATRIX.prototype.getMatrix = function(obj) {
           td.appendChild(this.arr[y][x].getMatrix(obj));
         }
         if (this.arr[y][x].constructor.name !== "R_MATRIX") {
-          td.innerHTML = this.arr[y][x];
+          
+          let val = this.arr[y][x];
+          
+          // IF IT IS A NUMBER
+          if (val + 0 === val) {
+            
+            // IF WE HAVE A DECIMAL SPECIFICATION
+            if (obj.hasOwnProperty('decimal_places')) {
+              
+              let decimal_places = obj.decimal_places;
+              
+              // IF THE SPECIFICATION IS AN INTEGER
+              if (decimal_places%1 === 0 && decimal_places >= 0) {
+                
+                let k = 10**decimal_places;
+                val = (Math.round(val * k) / k).toFixed(decimal_places);
+                
+              }
+              
+              
+            }
+            
+          }
+          
+          td.innerHTML = val;
+          
+          
+          
         }  
     
     } // closing x-loop
@@ -180,9 +214,11 @@ rafficot.get_sub_matrix = function(a, y, x) {
 };
 
 
-R_MATRIX.prototype.getBMatrix = function() {
+R_MATRIX.prototype.getBMatrix = function(obj_) {
   
-  let m = this.getMatrix({'border_type':'B'}); 
+  let obj = Object.assign({},obj_);   // COPY THE INPUT OBJECT
+  obj.border_type = 'B';              // ADD THE BORDER PROPERTY
+  let m = this.getMatrix(obj);
   
   let container = document.createElement('div');
   container.style.display = 'inline-block';
