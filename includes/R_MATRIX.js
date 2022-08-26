@@ -1,4 +1,4 @@
-/* LAST UPDATED : 2022-08-22-2337 EDT */
+/* LAST UPDATED : 2022-08-26-1855 EDT */
 
 // these are functions for numerical evaluation
 let rafficot = {};
@@ -523,14 +523,29 @@ rafficot.show_matrix = function(obj) {
   
   // BORDER THICKNESS
   cells[0][0].style.height = border_thickness + 'px';
-  cells[1][0].style.width = border_thickness + 'px';
-  cells[1][2].style.width = border_thickness + 'px';
-  cells[2][0].style.height = border_thickness + 'px';
+  
   
   // THE OVERHANG
-  cells[0][1].style.width = border_overhang + 'px';
-  cells[0][3].style.width = border_overhang + 'px';
-
+  cells[0][1].style.width = '5px';
+  cells[0][1].style.minWidth = '5px';
+  cells[0][1].style.height = '2px';
+  cells[0][1].style.minHeight = '2px';
+  
+  cells[0][3].style.width = '5px';
+  cells[0][3].style.minWidth = '5px';
+  cells[0][3].style.height = '2px';
+  cells[0][3].style.minHeight = '2px';
+  
+  cells[2][1].style.width = '5px';
+  cells[2][1].style.minWidth = '5px';
+  cells[2][1].style.height = '2px';
+  cells[2][1].style.minHeight = '2px';
+  
+  cells[2][3].style.width = '5px';
+  cells[2][3].style.minWidth = '5px';
+  cells[2][3].style.height = '2px';
+  cells[2][3].style.minHeight = '2px';
+  
   // NO BORDERS
   for (let i = 0; i < cells.length; i++) {
     for (let j = 0; j < cells[i].length; j++) {
@@ -540,8 +555,14 @@ rafficot.show_matrix = function(obj) {
     
 
 
-  // APPLYING COLOR THE THE BORDERS
+  // THE SIDES
+  cells[1][0].style.width = '2px';
+  cells[1][0].style.minWidth = '2px';
+  cells[1][0].style.backgroundColor = '#999';
   
+  cells[1][2].style.width = '2px';
+  cells[1][2].style.minWidth = '2px';
+  cells[1][2].style.backgroundColor = '#999';
 
 
  
@@ -557,8 +578,7 @@ rafficot.show_matrix = function(obj) {
   }
   
 
-    cells[1][0].style.backgroundColor = '#999';
-    cells[1][2].style.backgroundColor = '#999';
+
     cells[2][0].style.backgroundColor = '#999';
     cells[2][4].style.backgroundColor = '#999';
 
@@ -570,9 +590,13 @@ rafficot.show_matrix = function(obj) {
         }
       }
     }
-  
+
+
+
   // MAKE THE ACTUAL TABLE
   let outer_table = document.createElement('table');
+  outer_table.classList.add('rafficot_outer_table');
+  
   outer_table.style.borderCollapse = 'collapse';  // most important, this is
   outer_table.style.border = 'none';
   outer_table.style.margin = 0;
@@ -970,23 +994,97 @@ rafficot.show_matrix_of_sub_matrices = function(matrix) {
 
 rafficot.show_product = function(matrix_a, matrix_b) {
 
+  if (!this.validate_matrix(matrix_a)) {
+    return false;
+  }
+  
+  if (!this.validate_matrix(matrix_b)) {
+    return false;
+  }
+
+  // IF matrix_a HAS n COLUMNS, THEN matrix_b MUST HAVE n ROWS
+  if (matrix_a[0].length !== matrix_b.length) {
+    return false;
+  }
+  
+  // THE PRODUCT
   let matrix_ab = this.get_product(matrix_a, matrix_b);
 
+  // THE ELEMENTS
   let matrix_a_el = this.show_matrix({'arr':matrix_a});
   let matrix_b_el = this.show_matrix({'arr':matrix_b});
   let matrix_ab_el = this.show_matrix({'arr':matrix_ab});
 
-  //let arr = [ [ matrix_a_el, matrix_b_el, "=", matrix_ab_el ] ];
-
   return this.show_expression(matrix_a_el, matrix_b_el, "=", matrix_ab_el)
 
-  /*
-  return this.show_matrix({
-    'arr':arr,
-    'border_type':null
-  });
-  */
+};
+
+
+rafficot.show_product_expansion = function(matrix_a, matrix_b) {
+
+  if (!this.validate_matrix(matrix_a)) {
+    return false;
+  }
   
+  if (!this.validate_matrix(matrix_b)) {
+    return false;
+  }
+  
+  // IF matrix_a HAS n COLUMNS, THEN matrix_b MUST HAVE n ROWS
+  if (matrix_a[0].length !== matrix_b.length) {
+    return false;
+  }
+  
+  let n_rows = matrix_a.length;
+  let n_cols = matrix_b[0].length;
+  
+  let matrix_ab_expansion = this.create_matrix(n_rows, n_cols);
+  
+  // loop over the rows of matrix_a
+  for (let y = 0; y < n_rows; y++) {
+    
+    // loop over the columns of matrix_b
+    for (let x = 0; x < n_cols; x++) {
+      
+      let row = this.get_row(matrix_a, y);
+      let col = this.get_col(matrix_b, x);
+      
+      let cell = this.show_expression(this.show_matrix(row), this.show_matrix(col))
+      
+      matrix_ab_expansion[y][x] = cell;
+      
+    } // closing x-loop
+
+  } // closing y-loop
+  
+  // THE ELEMENTS
+  let matrix_a_el = this.show_matrix({'arr':matrix_a});
+  let matrix_b_el = this.show_matrix({'arr':matrix_b});
+  let matrix_ab_expansion_el = this.show_matrix({'arr':matrix_ab_expansion});
+
+  return this.show_expression(matrix_a_el, matrix_b_el, '=', matrix_ab_expansion_el);
+  
+};
+rafficot.show_inverse_expansion = function(matrix) {
+
+  // let matrix_inverse = [];
+
+  let adjugate_matrix = this.get_adjugate(matrix);
+  let determinant = this.get_determinant(matrix);
+  let n = matrix.length;
+  
+  
+  let matrix_inverse = this.create_matrix(n, n);
+  
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      matrix_inverse[y][x] = '<div style="text-align: center;">' + adjugate_matrix[y][x] + '</div>' + '<div style="border-bottom: 1px solid black;"></div>' + '<div style="text-align: center;">' + determinant + '</div>';
+    }
+  }
+  
+  // return this.show_expression(matrix, matrix_inverse, '=', this.show_product_expansion(matrix, matrix_inverse));
+  return this.show_product_expansion(matrix, matrix_inverse);
+
 };
 
 
